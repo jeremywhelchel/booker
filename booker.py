@@ -26,7 +26,7 @@ CLUB_TO_EVENT_TYPE = {
 TZ = pytz.timezone('US/Eastern')
 
 
-parser = argparse.ArgumentParser(description='Automate Virtagym reservations.')
+parser = argparse.ArgumentParser(description='Automate Virtuagym reservations.')
 parser.add_argument('username',
                     help='Virtuagym username')
 parser.add_argument('password',
