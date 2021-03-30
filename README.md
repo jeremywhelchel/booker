@@ -14,7 +14,7 @@ Finally, be diligent in sharing this program. Reservations are already a highly 
 
 ### Windows Executable
 
-1. Download `booker.exe` from the [Latest release](releases/latest) and save it to a notable location, e.g. your `Downloads` folder.
+1. Download `booker.exe` from the [Latest release](/acinonyxjb/booker/releases/latest) and save it to a notable location, e.g. your `Downloads` folder.
 1. Open the `Command Prompt` application.
 1. Navigate to where you saved your file. For example, type:
    `cd Downloads`
