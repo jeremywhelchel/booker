@@ -87,7 +87,9 @@ def Login(session: requests.Session):
         }
     )
     assert response.ok
-    assert 'vg-user-access-token' in session.cookies
+    if 'vg-user-access-token' not in session.cookies:
+        raise RuntimeError('Login unsuccessful. Suspect throttling. '
+                           'Wait a few minutes and try again.')
     print('SUCCESS')
 
 
