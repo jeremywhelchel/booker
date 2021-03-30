@@ -34,6 +34,7 @@ parser.add_argument('password',
 parser.add_argument('club',
                     choices=CLUB_TO_EVENT_TYPE.keys(),
                     help='Virtuagym club')
+parser.add_argument('--class', help='Filter by class name')
 subparser = parser.add_subparsers(dest='command', required=True,
                     help='Operation to perform')
 booknext = subparser.add_parser('book',
@@ -152,6 +153,8 @@ def ResponseToEventFrame(response: requests.Response) -> pd.DataFrame:
   ))
 
   events = events[~events['class_name'].isin(BLACKLIST_CLASSES)]
+  if getattr(args, 'class'):
+      events = events[events['class_name'] == getattr(args, 'class')]
 
   events=events[['start_time','class_name', 'full','joined','instructor','time']]
   return events

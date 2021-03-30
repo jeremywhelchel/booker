@@ -9,9 +9,9 @@ See the upcoming sessions
 $ booker.py me@gmail.com mypassword mcburney-ymca upcoming
 ```
 
-Book the next 2 upcoming slots at McBurney
+Book the next 2 upcoming `Lap Swim` slots at McBurney
 ```bash
-$ booker.py me@gmail.com mypassword mcburney-ymca book 2
+$ booker.py me@gmail.com mypassword mcburney-ymca --class="Lap Swim" book 2
 ```
 
 The login / password are from the "YMCA of Greater New York" app.
