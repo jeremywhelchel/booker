@@ -63,6 +63,16 @@ def CreateSession() -> requests.Session:
     return session
 
 
+class LoginError(RuntimeError):
+    def __str__(self):
+        return """
+Login unsuccessful. This is likely an incorrect username and password.
+However, if you're seeing this error after having previously logged in
+successfully, it may be due to throttling--you may be sending too many
+requests in a short time period. Wait a few minutes and try again.
+"""
+
+
 def Login(session: requests.Session):
     # Hit login form to grab a handful of form inputs for CSRF checking
     print(f'Visiting homepage for {args.club}...')
@@ -88,8 +98,7 @@ def Login(session: requests.Session):
     )
     assert response.ok
     if 'vg-user-access-token' not in session.cookies:
-        raise RuntimeError('Login unsuccessful. Suspect throttling. '
-                           'Wait a few minutes and try again.')
+        raise LoginError()
     print('SUCCESS')
 
 
