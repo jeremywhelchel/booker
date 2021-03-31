@@ -14,13 +14,17 @@ Finally, be diligent in sharing this program. Reservations are already a highly 
 
 ### Windows Executable
 
-1. Download `booker.exe` from the [Latest release](https://github.com/acinonyxjb/booker/releases/latest) and save it to a notable location, e.g. your `Downloads` folder.
+1. Download `booker.exe` from the [Latest release](https://github.com/acinonyxjb/booker/releases/latest) and save it to a notable location, e.g. your `Downloads` folder. Your browser may issue a warning about an untrusted file...tell it to keep the file. **Do not click on the file to run it.**
 1. Open the `Command Prompt` application.
-1. Navigate to where you saved your file. For example, type:
-   `cd Downloads`
+1. Navigate to where you saved your file. For example, if you saved it to the `Downloads` folder, type:
+   ```
+   cd Downloads
+   ```
 1. Run the program by typing:
-   `booker.exe --help`
-   You should see a help message.
+   ```
+   booker.exe --help
+   ```
+   The first time you run this, it may take a minute to extract. You should eventually see a help message, indicating success
 
 Note that you do not need to run the program by double-clicking the downloaded file. That is not necessary since this has no GUI, and in fact may only generate an "unrecognized app" warning. Fortunately there is no warning from running with the above method.
 
@@ -32,22 +36,42 @@ This is the preferred method if you already have Python installed on your machin
 
 ```bash
 # Install dependencies
-$ pip3 install bs4 pandas requests
+pip3 install bs4 pandas requests
 
 # Test that the command runs successful. You should see a help message.
-$ ./booker.py --help
+./booker.py --help
 ```
 
 ## Usage
 
 This runs in a command line terminal...there is no graphical interface. Some technical background is assumed.
-The login / password are from the "YMCA of Greater New York" app.
+You will be copying the commands below into the terminal window, with a few edits.
+
+**booker.exe** should be replaced with the name of the binary you downloaded. Keep `booker.exe` unchanged on Windows. Use `booker` on MacOS. Use `booker.py` for Python.
+
+**[email]** and **[password]** are the login / password from the "YMCA of Greater New York" app.
+
+**[club]** is the name of the club, and can be one of:
+  - `bedford-stuyvesant-ymca`
+  - `dodge-ymca`
+  - `mcburney-ymca`
+  - `prospect-park-ymca`
+  - `south-shore-ymca`
+
+For example:
+```bash
+booker.exe [email] [password] [club] upcoming
+```
+could become:
+```bash
+booker.exe me@gmail.com mypassword mcburney-ymca upcoming
+```
 
 ### Check upcoming events
-The `upcoming` command that returns a list of the next bookable events for your club.
+The `upcoming` command returns a list of the next bookable events for your club.
 
 ```bash
-$ booker.py me@gmail.com mypassword mcburney-ymca upcoming
+booker.exe [email] [password] [club] upcoming
 ```
 
 You should see a response like this:
@@ -71,9 +95,9 @@ id
 
 The `book` command attempts to reserve the next N slots as they become available. That N is adjustable--use `1` if your club prohibits back-to-back booking. Otherwise use `2`. The command also accepts an optional class name parameter, since many clubs offer multiple classes in their pool.
 
-To try to grab the next 2 upcoming `Lap Swim` slots at McBurney
+To try to grab the next 2 upcoming `Lap Swim` slots at your club:
 ```bash
-$ booker.py me@gmail.com mypassword mcburney-ymca --class="Lap Swim" book 2
+booker.exe [email] [password] [club] --class="Lap Swim" book 2
 ```
 
 You should see something like this:
@@ -100,11 +124,13 @@ The above result (with the `<script ...` message) generally indicates a success.
 
 If you plan to leave your computer unattended while this job runs, you need to make sure your computer doesn’t fall asleep on you. The `caffeinate` command on Mac can be helpful here. On Windows you may need to do something else.
 
-## Dependencies
+## Development notes
+
+### Dependencies
 
 Requires python3, pandas, bs4 (beautifulsoup), requests
 
-## Packaging
+### Packaging
 
 To create a standalone binary, we use Pyinstaller:
 
