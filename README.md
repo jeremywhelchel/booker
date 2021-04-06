@@ -12,27 +12,47 @@ Finally, be diligent in sharing this program. Reservations are already a highly 
 
 ## Installation and Setup
 
+The Windows and Mac Executable methods below involve downloading and running an untrusted binary, so you will be jumping through some hoops to disable your operating system's warnings. If you have concerns, the best method is to install python on your system so that you can run the python script directly.
+
 ### Windows Executable
 
-1. Download `booker.exe` from the [Latest release](https://github.com/acinonyxjb/booker/releases/latest) and save it to a notable location, e.g. your `Downloads` folder. Your browser may issue a warning about an untrusted file...tell it to keep the file. **Do not click on the file to run it.**
+1. Download `booker.exe` from the [Latest Release](https://github.com/acinonyxjb/booker/releases/latest) and save it to a notable location, e.g. your `Downloads` folder. Your browser may issue a warning about an untrusted file...tell it to keep the file. **Do not click on the file to run it.**
 1. Open the `Command Prompt` application.
 1. Navigate to where you saved your file. For example, if you saved it to the `Downloads` folder, type:
-   ```
-   cd Downloads
-   ```
+     ```
+     cd Downloads
+     ```
 1. Run the program by typing:
-   ```
-   booker.exe --help
-   ```
-   The first time you run this, it may take a minute to extract. You should eventually see a help message, indicating success
+     ```
+     booker.exe --help
+     ```
+
+The first time you run this, it may take a minute to extract. You should eventually see a help message, indicating success
 
 Note that you do not need to run the program by double-clicking the downloaded file. That is not necessary since this has no GUI, and in fact may only generate an "unrecognized app" warning. Fortunately there is no warning from running with the above method.
 
 ### Mac Executable
 
+1. Download `booker_macos.zip` from the [Latest Release](https://github.com/acinonyxjb/booker/releases/latest) and save it to a notable location, e.g. your `Downloads` folder. Your browser may issue a warning about an untrusted file...tell it to keep the file.
+1. Double-click on the downloaded zip file to extract a `booker` binary.
+1. Open the `Terminal` application.
+1. Navigate to where you saved your file. For example, if you saved it to the `Downloads` folder, type:
+     ```
+     cd Downloads
+     ```
+1. Run the program by typing:
+     ```
+     ./booker --help
+     ```
+
+The first time you run this, it may take a minute to extract. You should eventually see a help message, indicating success
+
+You may also see a warning that "booker" was blocked from use because it is not from an identifier developer. To fix, go into `System Preferences -> Security & Privacy -> General`. At the bottom you will see a message `"booker" was blocked from use because it is not from an identified developer.` next to an `Allow Anyway` button. Press that. You can find more info about this at: https://support.apple.com/en-us/HT202491
+
+
 ### Python environment
 
-This is the preferred method if you already have Python installed on your machine, as you won't need to trust any foreign executables. Simply installed the dependencies via pip and ensure the script runs.
+This is the preferred method if you already have Python installed on your machine, as you won't need to trust any foreign executables. Simply install the dependencies via `pip` and ensure the script runs.
 
 ```bash
 # Install dependencies
@@ -47,7 +67,7 @@ pip3 install bs4 pandas requests
 This runs in a command line terminal...there is no graphical interface. Some technical background is assumed.
 You will be copying the commands below into the terminal window, with a few edits.
 
-**booker.exe** should be replaced with the name of the binary you downloaded. Keep `booker.exe` unchanged on Windows. Use `booker` on MacOS. Use `booker.py` for Python.
+**`booker.exe`** should be replaced with the name of the binary you downloaded. Keep **`booker.exe`** unchanged on Windows. Use **`./booker`** on MacOS. Use **`./booker.py`** for Python.
 
 **[email]** and **[password]** are the login / password from the "YMCA of Greater New York" app.
 
@@ -58,13 +78,15 @@ You will be copying the commands below into the terminal window, with a few edit
   - `prospect-park-ymca`
   - `south-shore-ymca`
 
+**[command]** is the operation you would like to perform: **`upcoming`** or **`book`**. See sections below.
+
 For example:
 ```bash
-booker.exe [email] [password] [club] upcoming
+booker.exe [email] [password] [club] [command]
 ```
 could become:
 ```bash
-booker.exe me@gmail.com mypassword mcburney-ymca upcoming
+./booker me@gmail.com mypassword mcburney-ymca upcoming
 ```
 
 ### Check upcoming events
