@@ -31,17 +31,13 @@ parser = argparse.ArgumentParser(description="Automate Virtuagym reservations.")
 parser.add_argument("username", help="Virtuagym username")
 parser.add_argument("password", help="Virtuagym password")
 parser.add_argument("club", choices=CLUB_TO_EVENT_TYPE.keys(), help="Virtuagym club")
-parser.add_argument("--class", help="Filter by class name")
-subparser = parser.add_subparsers(
-    dest="command", required=True, help="Operation to perform"
+parser.add_argument(
+    "command", choices=["book", "upcoming"], help="Operation to perform"
 )
-book = subparser.add_parser(
-    "book", help="Book the next N events as they become available"
-)
-book.add_argument("n", type=int, help="Number of upcoming reservations to book")
-shownext = subparser.add_parser(
-    "upcoming", help="Display list of upcoming boookable events."
-)
+parser.add_argument("--name", help="Filter by class name")
+parser.add_argument("--id", nargs="+", help="ID for the next event to book")
+parser.add_argument("--time", nargs="+", help="Time slot to book. Must not conflict")
+parser.add_argument("--next", type=int, help="Number of upcoming reservations to book")
 args = parser.parse_args()
 
 
@@ -119,6 +115,7 @@ def Book(session: requests.Session, event_id: str) -> requests.Response:
 # Classes with these names are not actually bookable, so we filter them out.
 BLACKLIST_CLASSES = [
     "Lap Swim Information",
+    "Family Swim",
 ]
 
 
@@ -168,13 +165,10 @@ def ResponseToEventFrame(response: requests.Response) -> pd.DataFrame:
             ).map(lambda x: TZ.localize(x))
         )
     )
-
-    events = events[~events["class_name"].isin(BLACKLIST_CLASSES)]
-    if getattr(args, "class"):
-        events = events[events["class_name"] == getattr(args, "class")]
+    events = events.assign(date=events["date"].dt.strftime("%a, %b %-d"))
 
     events = events[
-        ["start_time", "class_name", "full", "joined", "instructor", "time"]
+        ["start_time", "class_name", "full", "joined", "instructor", "date", "time"]
     ]
     return events
 
@@ -202,23 +196,69 @@ def GetSchedule(session: requests.Session) -> pd.DataFrame:
     return ResponseToEventFrame(response)
 
 
+def FilterSchedule(events: pd.DataFrame) -> pd.DataFrame:
+    """Filter down upcoming classes based on flag values."""
+
+    events = events[~events["class_name"].isin(BLACKLIST_CLASSES)]
+
+    if args.name:
+        print("Filtering events by class name: ", args.name)
+        events = events[events["class_name"] == args.name]
+
+    if args.id:
+        print("Filtering events by ID: ", args.id)
+        missing = set(args.id).difference(events.index)
+        if missing:
+            raise ValueError("Unknown IDs: ", missing)
+        events = events.loc[args.id]
+
+    if args.time:
+        times = events["time"].map(lambda x: x.split(" - ")[0].replace(" ", ""))
+        print("Filtering events by time:", args.time)
+        print("Available times: ", list(times.values))
+        missing = set(args.time).difference(times)
+        if missing:
+            raise ValueError("Unknown times: ", missing)
+        events = events[times.isin(args.time)]
+
+    if args.next:
+        print("Filtering the next %i upcoming events." % args.next)
+        events = events.head(args.next)
+
+    return events
+
+
 def UpcomingEvents(events: pd.DataFrame) -> pd.DataFrame:
     """Find the upcoming schedulable events."""
     now = datetime.datetime.now(TZ)
     upcoming = now + datetime.timedelta(hours=48)
-    upcoming_events = events[events["start_time"] > upcoming]
+    # Only limit to events 2 days from now...
+    end_upcoming = now + datetime.timedelta(hours=72)
+    upcoming_events = events[
+        (events["start_time"] > upcoming) & (events["start_time"] < end_upcoming)
+    ]
     return upcoming_events
 
 
-def GetNextEvent(events: pd.DataFrame) -> Tuple[str, datetime.datetime]:
-    """Find the event id and scheduleable time for the next event."""
-    events = UpcomingEvents(events)
-    next_event = events.iloc[0]
-    id = next_event.name
-    next_event_schedule_at = next_event.start_time - datetime.timedelta(hours=48)
-    print("Next event:", next_event.class_name, "@", next_event.start_time)
-    print("Id:", id, "Can schedule at:", next_event_schedule_at)
-    return id, next_event_schedule_at
+def BookEvents(to_book: pd.DataFrame):
+    """Book all the events in to_book."""
+    print("")
+    print("Starting booking:")
+    for event_id, event_info in to_book.iterrows():
+        schedule_at = event_info["start_time"] - datetime.timedelta(hours=48)
+        print("Next event:", event_info["class_name"], "@", event_info["start_time"])
+        print("Id:", event_id, "Can schedule at:", schedule_at)
+
+        # Wait Til 1 min before event and initate a fresh login
+        WaitUtil(schedule_at - datetime.timedelta(minutes=1))
+        session = CreateSession()
+        Login(session)
+
+        # When reservation is available, try to book.
+        WaitUtil(schedule_at)
+        response = Book(session, event_id)
+
+    print("Done. All events booked.")
 
 
 def main():
@@ -228,27 +268,27 @@ def main():
     session = CreateSession()
     Login(session)
 
+    events = GetSchedule(session)
+    events = events.pipe(UpcomingEvents).pipe(FilterSchedule)
+
     if args.command == "upcoming":
-        events = GetSchedule(session).pipe(UpcomingEvents)
-        print(events)
+        print("Upcoming events:")
+        print(events[["date", "time", "class_name"]])
     elif args.command == "book":
-        iteration = 1
-        while iteration <= args.n:
-            print(f"\nNew iteration: {iteration}")
-            events = GetSchedule(session)
-            next_id, next_time = GetNextEvent(events)
+        print("Attempting to book:")
+        events = events.sort_values("start_time")
+        print(events[["date", "time", "class_name"]])
+        assert (
+            not events["start_time"].duplicated().any()
+        ), "Unable to book classes at the same time."
+        if events.empty:
+            raise ValueError("Nothing to book. Have you specified the right arguments?")
+        if len(events) > 4:
+            raise ValueError(
+                "Too many events to book. Have you specified the right arguments?"
+            )
+        BookEvents(events)
 
-            # Wait Til 1 min before event and initate a fresh login
-            WaitUtil(next_time - datetime.timedelta(minutes=1))
-            session = CreateSession()
-            Login(session)
-
-            # When reservation is available, try to book.
-            WaitUtil(next_time)
-            response = Book(session, next_id)
-            iteration += 1
-
-        print("Hit maximum number of iterations. Terminating")
     else:
         raise ValueError(args.command)
 

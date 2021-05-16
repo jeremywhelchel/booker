@@ -19,11 +19,11 @@ The Windows and Mac Executable methods below involve downloading and running an 
 1. Download `booker.exe` from the [Latest Release](https://github.com/acinonyxjb/booker/releases/latest) and save it to a notable location, e.g. your `Downloads` folder. Your browser may issue a warning about an untrusted file...tell it to keep the file. **Do not click on the file to run it.**
 1. Open the `Command Prompt` application.
 1. Navigate to where you saved your file. For example, if you saved it to the `Downloads` folder, type:
-     ```
+     ```bash
      cd Downloads
      ```
 1. Run the program by typing:
-     ```
+     ```bash
      booker.exe --help
      ```
 
@@ -37,11 +37,11 @@ Note that you do not need to run the program by double-clicking the downloaded f
 1. Double-click on the downloaded zip file to extract a `booker` binary.
 1. Open the `Terminal` application.
 1. Navigate to where you saved your file. For example, if you saved it to the `Downloads` folder, type:
-     ```
+     ```bash
      cd Downloads
      ```
 1. Run the program by typing:
-     ```
+     ```bash
      ./booker --help
      ```
 
@@ -77,6 +77,7 @@ You will be copying the commands below into the terminal window, with a few edit
   - `mcburney-ymca`
   - `prospect-park-ymca`
   - `south-shore-ymca`
+  - `west-side-ymca`
 
 **[command]** is the operation you would like to perform: **`upcoming`** or **`book`**. See sections below.
 
@@ -98,51 +99,116 @@ booker.exe [email] [password] [club] upcoming
 
 You should see a response like this:
 ```bash
-Namespace(class=None, club='mcburney-ymca', command='upcoming', password='mypassword', username='me@gmail.com')
+Namespace(name=None, club='mcburney-ymca', command='upcoming', password='mypassword', username='me@gmail.com')
 YMCA Booker starting.
 Visiting homepage for mcburney-ymca...
 Logging in to mcburney-ymca...SUCCESS
-                                                  start_time class_name   full  joined instructor           time
+                                              time class_name
 id
-1367586815-5f7d9ee9afdd59-59343164 2021-04-03 09:00:00-04:00   Lap Swim  False   False             09:00 - 09:30
-385012341-5fe745fe844596-45121657  2021-04-03 09:30:00-04:00   Lap Swim  False   False             09:30 - 10:00
-437989699-5fe746284162c6-19786510  2021-04-03 10:00:00-04:00   Lap Swim  False   False             10:00 - 10:30
-2126678736-5fe7464066c143-62114372 2021-04-03 10:30:00-04:00   Lap Swim  False   False             10:30 - 11:00
-1083908863-5fe7465878ac91-34805573 2021-04-03 11:00:00-04:00   Lap Swim  False   False             11:00 - 11:30
-1011798309-5fe74685e87d38-64147158 2021-04-03 11:30:00-04:00   Lap Swim  False   False             11:30 - 12:00
-1835032143-5fe746a255bd78-23370620 2021-04-03 12:00:00-04:00   Lap Swim  False   False             12:00 - 12:30
+1367586815-5f7d9ee9afdd59-59343164  09:00 - 09:30   Lap Swim
+385012341-5fe745fe844596-45121657   09:30 - 10:00   Lap Swim
+437989699-5fe746284162c6-19786510   10:00 - 10:30   Lap Swim
+2126678736-5fe7464066c143-62114372  10:30 - 11:00   Lap Swim
+1083908863-5fe7465878ac91-34805573  11:00 - 11:30   Lap Swim
+1011798309-5fe74685e87d38-64147158  11:30 - 12:00   Lap Swim
+1835032143-5fe746a255bd78-23370620  12:00 - 12:30   Lap Swim
 ```
 
-### Book next available events
+### Selecting events to book
 
-The `book` command attempts to reserve the next N slots as they become available. That N is adjustable--use `1` if your club prohibits back-to-back booking. Otherwise use `2`. The command also accepts an optional class name parameter, since many clubs offer multiple classes in their pool.
+By default, the script will look at all events in the next 48 to 72 hours, but it will not be able to book anything
+until you filter it using one or more of the methods below. These are specified by flags that appear at the end of
+the command-line. The script will show you what events it is trying to book before waiting for the booking period.
+If the events do not look correct, you can abort the program by pressing **control-C** and then try again after editing your command.
 
-To try to grab the next 2 upcoming `Lap Swim` slots at your club:
+#### Next bookable events
+
+The simplest method is to simply grab the next *N* events that will become available. This is useful if you are running the
+program roughly 48 hours in advance of when you swim. For example, this will try to grab the next two slots:
+
 ```bash
-booker.exe [email] [password] [club] --class="Lap Swim" book 2
+booker.exe ... --next 2
+```
+
+#### By event id
+
+If you have a specific event id (from the output of the `upcoming` command) you can specify it directly:
+
+```bash
+booker.exe ... --id "2126678736-5fe7464066c143-62114372"
+```
+
+This also accepts multiple values:
+
+```bash
+booker.exe ... --id "2126678736-5fe7464066c143-62114372" "1011798309-5fe74685e87d38-64147158"
+```
+
+#### By starting time
+
+You can select an event by its starting time. The time format must look like "**`08:30am`**". Otherwise it won't match an event.
+
+Note that this matches the time in the next 48-72 hours, so double-check the date you're expecting when you run this.
+
+
+```bash
+booker.exe ... --time "08:30am"
+```
+
+Or multiple values:
+
+```bash
+booker.exe ... --time "08:30am" "09:00am"
+```
+
+#### By class name
+
+Some locations have multiple pool slots at the same time, either because they have two pools or two programs at the same time. You can specify events by name.
+
+```bash
+booker.exe ... --name "Large Pool Lap Swim"
+```
+
+### Book
+
+The `book` command attempts to reserve all selected events. It will print them out before waiting to book, so make sure it's
+booking the correct events before continuing (press **control-C** to abort). Also, follow club rules...for example,
+only book one event if your club prohibits back-to-back booking.
+
+To try to grab 9:00 and 9:30 morning `Lap Swim` slots at McBurney:
+```bash
+booker.exe [email] [password] mcburney-ymca book --class="Lap Swim" --time "09:00am" "09:30am"
 ```
 
 You should see something like this:
 ```bash
-Namespace(club='mcburney-ymca', command='book', n=2, password='mypassword', username='me@gmail.com')
 YMCA Booker starting.
 Visiting homepage for mcburney-ymca...
 Logging in to mcburney-ymca...SUCCESS
 
-New iteration: 1
+Attempting to book:
+                                              time class_name
+id
+1367586815-5f7d9ee9afdd59-59343164  09:00 - 09:30   Lap Swim
+385012341-5fe745fe844596-45121657   09:30 - 10:00   Lap Swim
+
+Starting booking:
 Next event: Lap Swim @ 2021-04-03 09:00:00-04:00
 Id: ... Can schedule at: 2021-04-01 09:00:00-04:00
 Waiting .. until 2021-04-01 09:00:00-04:00
 <script type="text/javascript">window.location = "/classes/day/2021-04-03?event_type=2&activity_id=&coach=";</script>
 
-New iteration: 2
 Next event: Lap Swim @ 2021-04-03 09:30:00-04:00
 Id: ... Can schedule at: 2021-04-01 09:30:00-04:00
 Waiting .. until 2021-04-01 09:30:00-04:00
 <script type="text/javascript">window.location = "/classes/day/2021-04-03?event_type=2&activity_id=&coach=";</script>
 ```
 
+#### Did it work?
+
 The above result (with the `<script ...` message) generally indicates a success. The Virtuagym server does not return a clear success or failure message, and the script does not attempt to determine one at the moment. Use the normal app or website to check and manage your current bookings.
+
+#### Keep my computer awake
 
 If you plan to leave your computer unattended while this job runs, you need to make sure your computer doesn’t fall asleep on you. The `caffeinate` command on Mac can be helpful here. On Windows you may need to do something else.
 
@@ -150,7 +216,7 @@ If you plan to leave your computer unattended while this job runs, you need to m
 
 ### Dependencies
 
-Requires python3, pandas, bs4 (beautifulsoup), requests
+Requires `python3`, `pandas`, `bs4` (beautifulsoup), `requests`
 
 ### Packaging
 
