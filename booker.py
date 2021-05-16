@@ -22,6 +22,7 @@ CLUB_TO_EVENT_TYPE = {
     'mcburney-ymca': 1,
     'prospect-park-ymca': 1201,
     'south-shore-ymca': 6,
+    'west-side-ymca': 2,
 }
 TZ = pytz.timezone('US/Eastern')
 
@@ -37,9 +38,9 @@ parser.add_argument('club',
 parser.add_argument('--class', help='Filter by class name')
 subparser = parser.add_subparsers(dest='command', required=True,
                     help='Operation to perform')
-booknext = subparser.add_parser('book',
+book = subparser.add_parser('book',
                                 help='Book the next N events as they become available')
-booknext.add_argument('n', type=int, help='Number of upcoming reservations to book')
+book.add_argument('n', type=int, help='Number of upcoming reservations to book')
 shownext = subparser.add_parser('upcoming',
                                 help='Display list of upcoming boookable events.')
 args = parser.parse_args()
